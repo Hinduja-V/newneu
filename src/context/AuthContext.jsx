@@ -1,7 +1,4 @@
-// context/AuthContext.jsx
 import React, { createContext, useEffect, useState } from "react";
-import { auth } from "../firebase/config";
-import { onAuthStateChanged } from "firebase/auth";
 
 export const AuthContext = createContext();
 
@@ -10,16 +7,32 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
+    // 🔥 Load user from FastAPI login (localStorage)
+    const localUser = localStorage.getItem("mindcareUser");
 
-    return () => unsub();
+    if (localUser) {
+      setUser(JSON.parse(localUser));
+    }
+
+    setLoading(false);
   }, []);
 
+  // 🔐 LOGIN (FastAPI)
+  const login = (userData, token) => {
+    setUser(userData);
+    localStorage.setItem("mindcareUser", JSON.stringify(userData));
+    localStorage.setItem("token", token);
+  };
+
+  // 🚪 LOGOUT
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem("mindcareUser");
+    localStorage.removeItem("token");
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );

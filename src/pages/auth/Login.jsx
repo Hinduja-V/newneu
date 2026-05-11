@@ -1,117 +1,89 @@
 import React, { useState } from "react";
-import { auth, googleProvider } from "../../firebase/config";
-import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const login = async () => {
+  const login = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const res = await fetch("http://127.0.0.1:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-      const result = localStorage.getItem("result");
+      const data = await res.json();
 
-      if (!result) navigate("/assessment");
-      else navigate(`/dashboard/${result}`);
+      if (!res.ok) {
+        throw new Error(data.detail || "Login failed");
+      }
+
+      // 🔐 STORE DATA
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("mindcareUser", JSON.stringify(data.user));
+
+      // 🧠 Sync React state in App (no setUser prop needed)
+      window.dispatchEvent(new Event("storage"));
+
+      alert("Login successful!");
+
+      // 🚀 Redirect safely
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       alert(err.message);
-    }
-  };
-
-  const googleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      navigate("/assessment");
-    } catch (err) {
-      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={login}
+        className="w-96 p-8 bg-white shadow-xl rounded-2xl"
+      >
+        <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
 
-      {/* CARD */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-slate-100">
+        <input
+          className="w-full border p-3 mb-3 rounded"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        {/* HEADER */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-800">
-            Welcome Back 👋
-          </h1>
-          <p className="text-slate-500 mt-2">
-            Continue your mental wellness journey
-          </p>
-        </div>
+        <input
+          type="password"
+          className="w-full border p-3 mb-3 rounded"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        {/* EMAIL */}
-        <div className="mb-4">
-          <label className="text-sm font-semibold text-slate-600">
-            Email
-          </label>
-          <input
-            className="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Enter your email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        {/* PASSWORD */}
-        <div className="mb-6">
-          <label className="text-sm font-semibold text-slate-600">
-            Password
-          </label>
-          <input
-            type="password"
-            className="w-full mt-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            placeholder="Enter your password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        {/* LOGIN BUTTON */}
         <button
-          onClick={login}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg"
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
-        {/* OR DIVIDER */}
-        <div className="flex items-center my-6">
-          <div className="flex-1 h-px bg-slate-200"></div>
-          <p className="px-3 text-sm text-slate-400">OR</p>
-          <div className="flex-1 h-px bg-slate-200"></div>
-        </div>
-
-        {/* GOOGLE LOGIN */}
-        <button
-          onClick={googleLogin}
-          className="w-full flex items-center justify-center gap-3 border border-slate-200 py-3 rounded-xl hover:bg-slate-50 transition"
+        <p
+          onClick={() => navigate("/signup")}
+          className="text-center mt-4 text-blue-600 cursor-pointer"
         >
-          <img
-            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-            alt="google"
-            className="w-5"
-          />
-          <span className="font-semibold text-slate-700">
-            Continue with Google
-          </span>
-        </button>
-
-        {/* SIGNUP LINK */}
-        <p className="text-center mt-6 text-sm text-slate-500">
-          Don’t have an account?{" "}
-          <span
-            onClick={() => navigate("/signup")}
-            className="text-blue-600 font-bold cursor-pointer hover:underline"
-          >
-            Sign up
-          </span>
+          Create account
         </p>
-      </div>
+      </form>
     </div>
   );
 }

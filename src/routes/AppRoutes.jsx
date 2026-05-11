@@ -72,10 +72,11 @@ function AppRoutes({ user, aiStatus }) {
         path="/dashboard/depression"
         element={user ? <DepressionDashboard /> : <Navigate to="/login" />}
       />
+     
       <Route
-        path="/dashboard/normal"
-        element={user ? <NormalDashboard /> : <Navigate to="/login" />}
-      />
+  path="*"
+  element={<Navigate to={user ? "/dashboard/normal" : "/"} />}
+/>
 
       {/* FEATURES */}
       <Route path="/features" element={user ? <FeaturesPage /> : <Navigate to="/login" />} />

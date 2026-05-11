@@ -285,6 +285,7 @@ const HeroFloatCard = ({ delay, className, children }) => (
   </motion.div>
 );
 
+
 /* ════════════════════════════════════════════════════
    PROFESSIONAL HERO SECTION
    
@@ -309,7 +310,7 @@ const HeroFloatCard = ({ delay, className, children }) => (
      https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=800&q=85
    To use local: import therapyImg from "../assets/therapy.jpg" and use src={therapyImg}
 ════════════════════════════════════════════════════ */
-const HeroSection = () => (
+const HeroSection = ({ handleGetStarted }) => (
   <section
     className="relative min-h-screen pt-28 pb-20 px-6 text-white noise overflow-hidden"
     style={{
@@ -388,29 +389,37 @@ const HeroSection = () => (
           ))}
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex gap-4 flex-wrap mb-10">
-          <Link to="/login">
-            <motion.button
-              whileHover={{ scale:1.05 }}
-              whileTap={{ scale:.97 }}
-              className="btn-shine bg-gradient-to-r from-teal-400 to-blue-500 px-9 py-4 rounded-xl shadow-xl shadow-blue-500/30 font-bold text-white text-base font-grotesk flex items-center gap-2"
-            >
-              Get Started Free
-              <FaArrowRight className="text-sm" />
-            </motion.button>
-          </Link>
-          <Link to="/assessment">
-            <motion.button
-              whileHover={{ scale:1.05, backgroundColor:"rgba(255,255,255,.92)", color:"#1e293b" }}
-              whileTap={{ scale:.97 }}
-              className="border border-white/35 bg-white/10 backdrop-blur-sm px-9 py-4 rounded-xl text-white font-semibold text-base transition-all duration-300 font-grotesk flex items-center gap-2"
-            >
-              <FaPlay className="text-xs" />
-              Start Assessment
-            </motion.button>
-          </Link>
-        </div>
+       {/* CTA Buttons */}
+<div className="flex gap-4 flex-wrap mb-10">
+
+  {/* GET STARTED BUTTON */}
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.97 }}
+    onClick={handleGetStarted}
+    className="btn-shine bg-gradient-to-r from-teal-400 to-blue-500 px-9 py-4 rounded-xl shadow-xl shadow-blue-500/30 font-bold text-white text-base font-grotesk flex items-center gap-2"
+  >
+    Get Started Free
+    <FaArrowRight className="text-sm" />
+  </motion.button>
+
+  {/* ASSESSMENT BUTTON */}
+  <Link to="/assessment">
+    <motion.button
+      whileHover={{
+        scale: 1.05,
+        backgroundColor: "rgba(255,255,255,.92)",
+        color: "#1e293b"
+      }}
+      whileTap={{ scale: 0.97 }}
+      className="border border-white/35 bg-white/10 backdrop-blur-sm px-9 py-4 rounded-xl text-white font-semibold text-base transition-all duration-300 font-grotesk flex items-center gap-2"
+    >
+      <FaPlay className="text-xs" />
+      Start Assessment
+    </motion.button>
+  </Link>
+
+</div>
 
         {/* Trust row */}
         <motion.div
@@ -536,6 +545,16 @@ const HomePage = () => {
   const location = useLocation();
   const [activeExperience, setActiveExperience] = useState(1);
 
+  const handleGetStarted = () => {
+    const user = localStorage.getItem("mindcareUser");
+
+    if (user) {
+      navigate("/dashboard");
+    } else {
+      navigate("/login");
+    }
+  };
+
   useEffect(() => {
     if (location.hash) {
       const el = document.getElementById(location.hash.replace("#", ""));
@@ -547,13 +566,13 @@ const HomePage = () => {
     }
   }, [location]);
 
+
   return (
     <div className="bg-white min-h-screen font-sans text-slate-800 flex flex-col justify-between">
       <StyleTag />
       <div>
         {/* HERO */}
-        <HeroSection />
-
+        <HeroSection handleGetStarted={handleGetStarted} />
         {/* Stats Bar */}
         <StatBar />
 

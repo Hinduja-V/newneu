@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import { auth, googleProvider } from "./firebase/config";
-import {
-  onAuthStateChanged,
-  signInWithPopup,
-  signOut,
-} from "firebase/auth";
-
-import FloatingMindCareAI from "./components/FloatingMindCareAI";
+// Your components / pages
 import Navbar from "./components/Navbar";
-
+import Login from "./pages/auth/Login";
+import NormalDashboard from "./dashboards/NormalDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import AppRoutes from "./routes/AppRoutes";
+import FloatingMindCareAI from "./components/FloatingMindCareAI";
+import Signup from "./pages/auth/Signup";
 
-// Assessment Pages
+// Assessment & Info pages (keep these if still used elsewhere)
 import AssessmentCategory from "./pages/assessment/AssessmentCategory";
 import AssessmentQuestions from "./pages/assessment/AssessmentQuestions";
-
-// Info Pages
 import GeneralInfo from "./pages/assessment/info/GeneralInfo";
 import HealthInfo from "./pages/assessment/info/HealthInfo";
 import MoneyInfo from "./pages/assessment/info/MoneyInfo";
@@ -27,137 +22,108 @@ import SleepEnergyInfo from "./pages/assessment/info/SleepEnergyInfo";
 import EnvironmentInfo from "./pages/assessment/info/EnvironmentInfo";
 
 function App() {
-  const [user, setUser] = useState(null);
+  // ✅ Safe helper to read user from localStorage
+  const getUser = () => {
+    try {
+      const user = localStorage.getItem("mindcareUser");
+      return user ? JSON.parse(user) : null;
+    } catch {
+      return null;
+    }
+  };
 
-  // 🤖 Track Ollama Connection
+  // ✅ React state mirrors localStorage
+  const [user, setUser] = useState(getUser);
+
+  // 🤖 AI status
   const [aiStatus, setAiStatus] = useState("checking");
 
-  // 🔐 Firebase Auth Listener
+  // 🔐 Sync user across tabs & after login
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const syncUser = () => {
+      setUser(getUser());
+    };
 
-    return () => unsubscribe();
+    window.addEventListener("storage", syncUser);
+    window.addEventListener("focus", syncUser);
+
+    return () => {
+      window.removeEventListener("storage", syncUser);
+      window.removeEventListener("focus", syncUser);
+    };
   }, []);
 
-  // 🤖 AI Status Listener
+  // 🤖 Check Ollama AI status
   useEffect(() => {
     const checkOllama = async () => {
       try {
         const response = await fetch("http://localhost:11434/api/tags");
-
-        if (response.ok) {
-          setAiStatus("online");
-        } else {
-          setAiStatus("offline");
-        }
-      } catch (error) {
+        if (response.ok) setAiStatus("online");
+        else setAiStatus("offline");
+      } catch {
         setAiStatus("offline");
       }
     };
 
-    // Initial check
     checkOllama();
-
-    // Check every 30 seconds
     const interval = setInterval(checkOllama, 30000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // 🔑 Login
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.log("Login Error:", error);
-    }
-  };
-
-  // 🚪 Logout
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.log("Logout Error:", error);
-    }
+  // 🚪 LOGOUT
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem("mindcareUser");
+    localStorage.removeItem("token");
   };
 
   return (
     <BrowserRouter>
       {/* Navbar */}
-      <Navbar
-        user={user}
-        aiStatus={aiStatus}
-        handleLogin={handleLogin}
-        handleLogout={handleLogout}
-      />
+      <Navbar user={user} aiStatus={aiStatus} handleLogout={handleLogout} />
 
       {/* Routes */}
       <Routes>
-        {/* Assessment Home */}
+        {/* Public Auth Routes */}
         <Route
-          path="/assessment"
-          element={<AssessmentCategory />}
+          path="/login"
+          element={user ? <Navigate to="/dashboard" replace /> : <Login />}
         />
 
-        {/* Assessment Info Pages */}
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Assessment */}
+        <Route path="/assessment" element={<AssessmentCategory />} />
+        <Route path="/assessment/:category" element={<AssessmentQuestions />} />
+
+        {/* Info Pages */}
+        <Route path="/assessment/info/general" element={<GeneralInfo />} />
+        <Route path="/assessment/info/health" element={<HealthInfo />} />
+        <Route path="/assessment/info/money" element={<MoneyInfo />} />
+        <Route path="/assessment/info/relationship" element={<RelationshipInfo />} />
+        <Route path="/assessment/info/focus-growth" element={<FocusGrowthInfo />} />
+        <Route path="/assessment/info/sleep-energy" element={<SleepEnergyInfo />} />
+        <Route path="/assessment/info/safe-space" element={<EnvironmentInfo />} />
+<Route path="/signup" element={<Signup />} />
+        {/* Protected Dashboard */}
         <Route
-          path="/assessment/info/general"
-          element={<GeneralInfo />}
+          path="/dashboard"
+          element={
+            <ProtectedRoute user={user}>
+              <NormalDashboard user={user} />
+            </ProtectedRoute>
+          }
         />
 
-        <Route
-          path="/assessment/info/health"
-          element={<HealthInfo />}
-        />
-
-        <Route
-          path="/assessment/info/money"
-          element={<MoneyInfo />}
-        />
-
-        <Route
-          path="/assessment/info/relationship"
-          element={<RelationshipInfo />}
-        />
-
-        <Route
-          path="/assessment/info/focus-growth"
-          element={<FocusGrowthInfo />}
-        />
-
-        <Route
-          path="/assessment/info/sleep-energy"
-          element={<SleepEnergyInfo />}
-        />
-
-        <Route
-          path="/assessment/info/safe-space"
-          element={<EnvironmentInfo />}
-        />
-
-        {/* Dynamic Assessment Questions */}
-        <Route
-          path="/assessment/:category"
-          element={<AssessmentQuestions />}
-        />
-
-        {/* Main App Routes */}
+        {/* Catch‑all / landing */}
         <Route
           path="/*"
-          element={
-            <AppRoutes
-              user={user}
-              aiStatus={aiStatus}
-            />
-          }
+          element={<AppRoutes user={user} aiStatus={aiStatus} />}
         />
       </Routes>
 
-      {/* Floating AI Assistant */}
-      <FloatingMindCareAI />
+      {/* Floating AI */}
+      <FloatingMindCareAI aiStatus={aiStatus} />
     </BrowserRouter>
   );
 }
