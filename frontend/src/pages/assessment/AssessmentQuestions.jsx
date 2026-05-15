@@ -185,7 +185,7 @@ const AssessmentQuestions = () => {
   const phqStart = categoryLength;
   const gadStart = categoryLength + phq9Questions.length;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!selected) return;
 
     const updatedAnswers = [
@@ -213,6 +213,26 @@ const AssessmentQuestions = () => {
         percentageScore,
         answers: updatedAnswers,
       };
+const user = JSON.parse(localStorage.getItem("mindcareUser"));
+
+if (!user?.id) {
+  console.error("User not found in localStorage");
+  return;
+}
+
+await fetch("http://localhost:8000/save-assessment", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    user_id: user.id,   // make sure this exists
+    category: category,
+    percentage_score: percentageScore,
+    stress_level: percentageScore <= 33 ? "LOW" : percentageScore <= 66 ? "MEDIUM" : "HIGH",
+    answers: updatedAnswers,
+  }),
+});
 
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(resultData));
       setCompleted(true);

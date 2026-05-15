@@ -546,10 +546,10 @@ const HomePage = () => {
   const [activeExperience, setActiveExperience] = useState(1);
 
   const handleGetStarted = () => {
-    const user = localStorage.getItem("mindcareUser");
+  const user = JSON.parse(localStorage.getItem("mindcareUser") || "null");
 
     if (user) {
-      navigate("/dashboard");
+      navigate("/category");
     } else {
       navigate("/login");
     }

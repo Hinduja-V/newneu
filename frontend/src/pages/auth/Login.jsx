@@ -27,17 +27,18 @@ export default function LoginPage() {
         throw new Error(data.detail || "Login failed");
       }
 
-      // 🔐 STORE DATA
+      // ✅ STORE USER CORRECTLY
       localStorage.setItem("token", data.token);
       localStorage.setItem("mindcareUser", JSON.stringify(data.user));
 
-      // 🧠 Sync React state in App (no setUser prop needed)
+      // optional sync event
       window.dispatchEvent(new Event("storage"));
 
       alert("Login successful!");
 
-      // 🚀 Redirect safely
+      // ✅ IMPORTANT: go to dashboard (not category)
       navigate("/dashboard", { replace: true });
+
     } catch (err) {
       alert(err.message);
     } finally {
@@ -47,10 +48,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={login}
-        className="w-96 p-8 bg-white shadow-xl rounded-2xl"
-      >
+      <form onSubmit={login} className="w-96 p-8 bg-white shadow-xl rounded-2xl">
+
         <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
 
         <input
@@ -77,12 +76,6 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p
-          onClick={() => navigate("/signup")}
-          className="text-center mt-4 text-blue-600 cursor-pointer"
-        >
-          Create account
-        </p>
       </form>
     </div>
   );

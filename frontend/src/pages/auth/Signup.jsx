@@ -82,7 +82,7 @@ const Signup = () => {
 
       setSuccess("Account created successfully!");
 
-      localStorage.setItem("mindcareUser", JSON.stringify(data.user));
+   const user = JSON.parse(localStorage.getItem("mindcareUser") || "null");
 
       setTimeout(() => {
        navigate("/dashboard");

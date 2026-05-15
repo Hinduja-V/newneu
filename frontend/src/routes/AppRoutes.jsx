@@ -5,7 +5,7 @@ import HomePage from "../pages/HomePage";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
 import SOSPage from "../pages/SOSPage";
-
+import Category from "../pages/Category";
 /* FEATURE PAGES */
 import FeaturesPage from "../pages/FeaturesPage";
 import ActivitiesPage from "../pages/ActivitiesPage";
@@ -14,6 +14,9 @@ import RelaxingPage from "../pages/RelaxingPage";
 import ChatPage from "../pages/ChatPage";
 import ResourcesPage from "../pages/ResourcesPage";
 import MoodSongsPage from "../pages/MoodSongsPage";
+import CBTChatbot from "../pages/CBTChatbot";
+import Dashboard from "../pages/Dashboard";
+import DepressionPage from "../pages/DepressionPage.jsx";
 
 /* TOOLS */
 import Whiteboard from "../pages/Whiteboard";
@@ -72,7 +75,7 @@ function AppRoutes({ user, aiStatus }) {
         path="/dashboard/depression"
         element={user ? <DepressionDashboard /> : <Navigate to="/login" />}
       />
-     
+ 
       <Route
   path="*"
   element={<Navigate to={user ? "/dashboard/normal" : "/"} />}
@@ -89,6 +92,20 @@ function AppRoutes({ user, aiStatus }) {
       <Route path="/breathing" element={<BreathingExercise />} />
       <Route path="/meditation" element={user ? <Meditation /> : <Navigate to="/login" />} />
       <Route path="/pomodoro" element={user ? <PomodoroTimer /> : <Navigate to="/login" />} />
+     
+      <Route
+  path="/category"
+  element={user ? <Category /> : <Navigate to="/login" />}
+/>
+<Route
+  path="/cbt-chat"
+  element={user ? <CBTChatbot /> : <Navigate to="/login" />}
+/>
+<Route path="/dashboard" element={<Dashboard />} />
+<Route
+  path="/depression-ai"
+  element={user ? <DepressionPage /> : <Navigate to="/login" />}
+/>
 
       {/* GAMES */}
       <Route path="/games" element={user ? <GamesPage /> : <Navigate to="/login" />} />
